@@ -2,7 +2,20 @@ import math
 import numpy as np
 import gym
 import matplotlib.pyplot as plt
+from matplotlib import animation
 
+def save_frames_as_gif(frames, path='./', filename='gym_animation.gif'):
+    #Mess with this to change frame size
+    plt.figure(figsize=(frames[0].shape[1] / 72.0, frames[0].shape[0] / 72.0), dpi=72)
+
+    patch = plt.imshow(frames[0])
+    plt.axis('off')
+
+    def animate(i):
+        patch.set_data(frames[i])
+
+    anim = animation.FuncAnimation(plt.gcf(), animate, frames = len(frames), interval=50)
+    anim.save(path + filename, writer='imagemagick', fps=60)
 
 env = gym.make("CartPole-v1")
 
@@ -26,7 +39,7 @@ high[3] = 20.00
 print(f"Observation space low: {low}")
 print(f"Observation space high: {high}")
 
-n_buckets = [1, 1, 50, 50]
+n_buckets = [1, 1, 100, 100]
 
 np_win_size = get_win_size(low, high, n_buckets)
 print(f"Win_size: {np_win_size}")
@@ -45,6 +58,7 @@ LEARNING_RATE = 0.1
 SHOW_EVERY = 500
 DISCOUNT = 0.95
 SAVE_Q_TABLE_EP = 100
+SAVE_GIF_EPISODE = 50_000
 
 
 #Exploration settings
@@ -64,6 +78,7 @@ total_reward = 0
 mean_reward = 0
 prev_reward = 0
 objective_reached = 0
+frames = []
 
 #analysis
 ep_rewards = []
@@ -93,6 +108,9 @@ for episode in range(EPISODES + 1):
         
         # if render:
         #     env.render()
+
+        if episode == SAVE_GIF_EPISODE:
+            frames.append(env.render(mode="rgb_array"))
         
         if not done:
             max_future_q = np.max(q_table[new_discrete_obs])
@@ -127,23 +145,24 @@ for episode in range(EPISODES + 1):
         analysis_ep_reward['min'].append(min(ep_rewards[-SHOW_EVERY:]))
         analysis_ep_reward['max'].append(max(ep_rewards[-SHOW_EVERY:]))
 
-        plt.subplot(111)
-        plt.axvline(x=START_DECAYING_EPISODE, label="start decay ep", c = "red")
-        plt.axhline(y=REWARD_TARGET, label="target", c = "purple")
-        plt.plot(analysis_ep_reward['ep'], analysis_ep_reward['avg'], label = 'avg')
-        plt.plot(analysis_ep_reward['ep'], analysis_ep_reward['min'], label = 'min')
-        plt.plot(analysis_ep_reward['ep'], analysis_ep_reward['max'], label = 'max')
-        plt.xlim(0, EPISODES+1)
-        plt.ylim(0,600)
-        plt.legend(loc = 4)
-        plt.savefig(f"charts/try{episode}.png")
-        plt.clf()
+        # plt.subplot(111)
+        # plt.axvline(x=START_DECAYING_EPISODE, label="start decay ep", c = "red")
+        # plt.axhline(y=REWARD_TARGET, label="target", c = "purple")
+        # plt.plot(analysis_ep_reward['ep'], analysis_ep_reward['avg'], label = 'avg')
+        # plt.plot(analysis_ep_reward['ep'], analysis_ep_reward['min'], label = 'min')
+        # plt.plot(analysis_ep_reward['ep'], analysis_ep_reward['max'], label = 'max')
+        # plt.xlim(0, EPISODES+1)
+        # plt.ylim(0,600)
+        # plt.legend(loc = 4)
+        # plt.savefig(f"charts/try{episode}.png")
+        # plt.clf()
 
         print(f"EP: {episode} avg: {avg_reward} min: {min(ep_rewards[-SHOW_EVERY:])} max: {max(ep_rewards[-SHOW_EVERY:])} Objective reached: {objective_reached}")
         total_reward = 0
         objective_reached = 0
 
-    
+    if frames:
+        save_frames_as_gif(frames)
     
     
 env.close()

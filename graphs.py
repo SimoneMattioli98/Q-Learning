@@ -27,7 +27,6 @@ for i in range (0, EPISODES+1, SAVED_EVERY):
     q_table = np.load(f"qtables/{70000}-qtable.py.npy")
     for x, x_vals in enumerate(q_table):
         for y, y_vals in enumerate(x_vals):
-            print(F"x: {x}  y: {y}")
             for k, k_vals in enumerate(y_vals):
                 for j, j_vals in enumerate(k_vals):
                     ax1.scatter(k, j, c=get_q_color(j_vals[0], j_vals)[0], marker="o", alpha=get_q_color(j_vals[0], j_vals)[1])
@@ -35,6 +34,5 @@ for i in range (0, EPISODES+1, SAVED_EVERY):
                     ax1.set_ylabel("Action 0")
                     ax2.set_ylabel("Action 1")
 
-#plt.show()
     plt.savefig(f"qtable_charts/{i}.png")
     plt.clf()
